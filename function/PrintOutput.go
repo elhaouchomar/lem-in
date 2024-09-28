@@ -6,85 +6,82 @@ import (
 	"strings"
 )
 
-var output = [][]string{}
+var antMovements = [][]string{} // Stores the sequences of ant movements
 
-func PrintAnts(ants int, paths [][]string) {
-	arr := RankPaths(paths)
-	paths = FilterUniquePaths(arr)
-	sort.Slice(paths, func(i, j int) bool {
-		return len(paths[i]) < len(paths[j])
+func PrintAnts(totalAnts int, paths [][]string) {
+	rankedPaths := RankPaths(paths) // Ranked paths after filtering
+	uniquePaths := FilterUniquePaths(rankedPaths) // Unique paths for ant movement
+	sort.Slice(uniquePaths, func(i, j int) bool {
+		return len(uniquePaths[i]) < len(uniquePaths[j]) // Sort paths by length
 	})
-	affectPaths(ants, paths)
-	j := 0
-	an := 1
-	stop := false
-	for !stop {
-		for p := range antsPaths {
-			if antsPaths[p] != 0 {
-				moveAnts(an, paths[p], j)
-				antsPaths[p]--
-				an++
-				if an > ants {
-					stop = true
+	assignAntsToPaths(totalAnts, uniquePaths) // Assign ants to paths
+	currentStep := 0 // Current output index
+	currentAnt := 1 // Current ant number
+	allAntsMoved := false // Flag to stop movement
+	for !allAntsMoved {
+		for pathIndex := range antPathAssignments {
+			if antPathAssignments[pathIndex] != 0 {
+				moveAnts(currentAnt, uniquePaths[pathIndex], currentStep) // Move ants along paths
+				antPathAssignments[pathIndex]--
+				currentAnt++
+				if currentAnt > totalAnts {
+					allAntsMoved = true // Stop if all ants are moved
 					break
 				}
 			}
 		}
-		j++
-
+		currentStep++ // Increment output index
 	}
 
-	printoutput(output)
-	fmt.Println(len(output))
+	printAntMovements(antMovements) // Print final output
+	fmt.Println(len(antMovements)) // Print the length of output
 }
 
-func printoutput(output [][]string) {
-	for i := 0; i < len(output); i++ {
-		// time.Sleep(time.Second * 1/50 )
-		fmt.Println(strings.Join(output[i], " "))
+func printAntMovements(movements [][]string) {
+	for i := 0; i < len(movements); i++ {
+		fmt.Println(strings.Join(movements[i], " ")) // Print each movement sequence
 	}
 }
 
-func moveAnts(ant int, path []string, j int) {
+func moveAnts(antNumber int, path []string, stepIndex int) {
 	for i := 0; i < len(path); i++ {
-		toPrint := fmt.Sprintf("L%v-%v", ant, path[i])
-		if j < len(output) {
-			output[j] = append(output[j], toPrint)
-			j++
+		movement := fmt.Sprintf("L%v-%v", antNumber, path[i]) // Format ant movement
+		if stepIndex < len(antMovements) {
+			antMovements[stepIndex] = append(antMovements[stepIndex], movement) // Append movement to existing output
+			stepIndex++
 		} else {
-			output = append(output, []string{toPrint})
-			j++
+			antMovements = append(antMovements, []string{movement}) // Create new output entry
+			stepIndex++
 		}
 	}
 }
 
-var antsPaths = make(map[int]int)
+var antPathAssignments = make(map[int]int) // Map to track ants assigned to paths
 
-// a         int = 1
-func affectPaths(ants int, lastPath [][]string) {
-	ar := [][]string{}
-	a := 1
-	boo := false
+func assignAntsToPaths(totalAnts int, lastPath [][]string) {
+	tempPaths := [][]string{} // Temporary slice for path processing
+	antCount := 1 // Counter for ants
+	lastPathProcessed := false // Flag for processing last path
 	for i := 1; i < len(lastPath); i++ {
-		diff := len(lastPath[i]) - len(lastPath[i-1])
-		ar = append(ar, lastPath[i-1])
-		for a <= diff {
-			for k := 0; k < len(ar); k++ {
-				antsPaths[k]++
-				a++
+		lengthDifference := len(lastPath[i]) - len(lastPath[i-1]) // Length difference between paths
+		tempPaths = append(tempPaths, lastPath[i-1]) // Append previous path
+		for antCount <= lengthDifference {
+			for k := 0; k < len(tempPaths); k++ {
+				antPathAssignments[k]++ // Increment ant assignment
+				antCount++
 			}
 		}
 	}
-	for a <= ants {
-		if !boo {
-			ar = append(ar, lastPath[len(lastPath)-1])
-			boo = true
+	for antCount <= totalAnts {
+		if !lastPathProcessed {
+			tempPaths = append(tempPaths, lastPath[len(lastPath)-1]) // Process last path
+			lastPathProcessed = true
 		}
-		for k := 0; k < len(ar); k++ {
-			antsPaths[k]++
-			a++
-			if a == ants+1 {
-				break
+		for k := 0; k < len(tempPaths); k++ {
+			antPathAssignments[k]++ // Increment ant assignment
+			antCount++
+			if antCount == totalAnts+1 {
+				break // Stop if all ants are assigned
 			}
 		}
 	}
