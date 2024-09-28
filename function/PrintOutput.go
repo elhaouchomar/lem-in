@@ -9,8 +9,8 @@ import (
 var output = [][]string{}
 
 func PrintAnts(ants int, paths [][]string) {
-	arr := Choose(paths)
-	paths = ChosePath(arr)
+	arr := RankPaths(paths)
+	paths = FilterUniquePaths(arr)
 	sort.Slice(paths, func(i, j int) bool {
 		return len(paths[i]) < len(paths[j])
 	})

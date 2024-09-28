@@ -6,8 +6,8 @@ import (
 
 func main() {
 	ants, links, start, end := lem_in.ReadFile()
-	graph := lem_in.ConvertToGraph(links)
-	lem_in.Dfs(end, graph, []string{start})
+	graph := lem_in.BuildGraph(links)
+	lem_in.DepthFirstSearch(end, graph, []string{start})
 
 	errorMsg := lem_in.CheckErrors(ants, start, end, len(lem_in.Paths))
 

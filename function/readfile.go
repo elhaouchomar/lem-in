@@ -53,7 +53,7 @@ func ReadFile() (int, [][]string, string, string) {
 			from := checkline(scanner.Text())[1]
 			to := checkline(scanner.Text())[2]
 			e := []string{from, to}
-			if NotIn(links, e) {
+			if IsPathUnique(links, e) {
 				links = append(links, e)
 			}
 			
