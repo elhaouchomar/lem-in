@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Graph Visualization</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .link { stroke: #999; stroke-opacity: 0.6; }
+        .node { stroke: #fff; stroke-width: 1.5px; }
+        .node circle { fill: #69b3a2; }
+        .label { font: 12px sans-serif; text-anchor: middle; }
+    </style>
+</head>
+<body>
+    <svg width="800" height="600"></svg>
+    <script>
+        // Variables for nodes and links
+        const nodesData = [
+            { id: "richard", room: "Richard" },
+            { id: "gilfoyle", room: "Gilfoyle" },
+            { id: "erlich", room: "Erlich" },
+            { id: "dinish", room: "Dinish" },
+            { id: "jimYoung", room: "Jim Young" },
+            { id: "peter", room: "Peter" }
+        ];
+        
+        const linksData = [
+            { source: "richard", target: "dinish" },
+            { source: "dinish", target: "jimYoung" },
+            { source: "richard", target: "gilfoyle" },
+            { source: "gilfoyle", target: "peter" },
+            { source: "gilfoyle", target: "erlich" },
+            { source: "richard", target: "erlich" },
+            { source: "erlich", target: "jimYoung" },
+            { source: "jimYoung", target: "peter" }
+        ];
+        
+        const svg = d3.select("svg");
+        const simulation = d3.forceSimulation(nodesData)
+            .force("link", d3.forceLink().id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-200))
+            .force("center", d3.forceCenter(400, 300));
+
+        const link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(linksData)
+            .enter().append("line")
+            .attr("class", "link");
+
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(nodesData)
+            .enter().append("g");
+
+        node.append("circle")
+            .attr("r", 10)
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        node.append("text")
+            .attr("class", "label")
+            .text(d => d.room)
+            .attr("dy", -15) // Adjusts the label position above the node
+            .attr("text-anchor", "middle");
+
+        simulation
+            .nodes(nodesData)
+            .on("tick", () => {
+                link.attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                
+                node.attr("transform", d => `translate(${d.x}, ${d.y})`);
+            });
+
+        simulation.force("link").links(linksData);
+
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    </script>
+</body>
+</html>
